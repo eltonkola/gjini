@@ -1,6 +1,8 @@
 
 # ADK agent for curated rss news feeds
-
+<p align="center">
+  <img src="https://github.com/eltonkola/gjini/blob/main/media/logo.png" width="200">
+</p>
 The goal I wanted to achieve was to build an agent that could read news from curated RSS for different countries. 
 I mostly care about the USA, Italy and Albania, the three countries that I lived in. For now the agent will 
 understand my intent and successfully create a summary of the news. 
