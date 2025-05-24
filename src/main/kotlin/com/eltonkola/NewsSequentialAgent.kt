@@ -1,0 +1,41 @@
+package com.eltonkola
+
+import com.google.adk.agents.LlmAgent
+import com.google.adk.agents.SequentialAgent
+
+class NewsSequentialAgent {
+
+        companion object {
+
+                val greeter = LlmAgent.builder()
+                        .name("Greeter")
+                        .model("gemini-2.0-flash")
+                        .description("Greeter the user for using the news!")
+                        .instruction("""
+                                You are a friendly assistant. Greet the user, thank them for using the news agent, and let them know you're now loading the latest RSS feeds and news for them.
+                                """.trimIndent()
+                                                )
+                        .build()
+                val taskDoer = SequentialAgent.builder()
+                    .name("TaskExecutor")
+                    .description("Loads feeds, summarizes, generates image, then audio.")
+                    .subAgents(
+                       RssSourcesAgent.rssAgent,
+                                NewsExtractorAgent.newsExtractor,
+                   //     NewsImageAgent.newsImage,
+                   //    NewsAudioAgent.newsAudio,
+
+                    )
+                    .build()
+
+                @JvmField
+                val coordinator = LlmAgent.builder()
+                        .name("News Agent")
+                        .model("gemini-2.0-flash")
+                        .description("I coordinate rss feeds and news for any location, show only the final news to the user.")
+                        .subAgents(greeter, taskDoer)
+                        .build()
+
+        }
+
+}

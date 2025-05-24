@@ -1,0 +1,128 @@
+//package com.eltonkola.old
+//
+//import com.eltonkola.news.NewsLoader
+//import com.google.adk.agents.BaseAgent
+//import com.google.adk.agents.LlmAgent
+//import com.google.adk.tools.Annotations
+//import com.google.adk.tools.FunctionTool
+//import kotlin.jvm.java
+//
+//
+//class  NewsAgentX {
+//
+//    companion object {
+//
+//        @JvmField
+//        val ROOT_AGENT: BaseAgent = LlmAgent.builder()
+//            .name("albanian_news_agent")
+//            .model("gemini-2.0-flash")
+//            .description("Agent to read latest albanian news.")
+////            .instruction(
+////                """
+////    You are a helpful agent that reads Albanian news using the getNews tool.
+////    You must summarize the most relevant news on the requested topic using the titles and descriptions returned.
+////    Present the summary as a short, readable paragraph.
+////    """.trimIndent()
+////            )
+//            .instruction(
+//                """
+//    You are a helpful news agent. When the user requests news for any location (city, state, or country),
+//    you must first determine 3 to 5 trustworthy RSS feed URLs for that location (even if you must guess them from your knowledge).
+//
+//    Then, call the getNewsFromFeeds tool using those RSS URLs. Summarize the latest news from those feeds into a short report.
+//
+//    If you're not confident in the RSS sources, use well-known general sources (e.g. BBC, Reuters) filtered by location keywords.
+//    """.trimIndent()
+//            )
+//            .tools(
+//                FunctionTool.create(NewsAgentX::class.java, "getNews")
+//            )
+//            .build()
+//
+//
+//
+//        @JvmStatic
+//        fun getNews(
+//            @Annotations.Schema(description = "List of RSS feed URLs") feeds: List<String>
+//        ): Map<String, Any> {
+//            return try {
+//                return try {
+//                    val loader = NewsLoader()
+//                    val newsItems = loader.loadFromFeeds(feeds).map { it.take(5) }.flatten()
+//
+//                    val summarizedItems = newsItems.map {
+//                        mapOf(
+//                            "title" to it.title,
+//                            "description" to it.description
+//                        )
+//                    }
+//
+//                    mapOf(
+//                        "status" to "success",
+//                        "news" to summarizedItems
+//                    )
+//                } catch (e: Exception) {
+//                    mapOf(
+//                        "status" to "error",
+//                        "note" to "Could not load or summarize news from the feeds."
+//                    )
+//                }
+//
+//            } catch (e: Exception) {
+//                mapOf(
+//                    "status" to "error",
+//                    "news" to emptyList<String>(),
+//                    "note" to "Failed to load news."
+//                )
+//            }
+//        }
+//
+//
+////        @JvmStatic
+////        fun getNews(@Annotations.Schema(description = "News topic") topic: String? = null): Map<String, Any> {
+////            return try {
+////                val loader = NewsLoader()
+////                val newsItems = loader.loadNews()
+////
+////                val relevantNews = if(topic!=null){
+////                    newsItems.filter {
+////                        it.title.contains(topic, ignoreCase = true) ||
+////                                it.description?.contains(topic, ignoreCase = true) == true
+////                    }
+////                }else{
+////                    newsItems
+////                }
+////
+////                if (relevantNews.isEmpty()) {
+////                    return mapOf(
+////                        "status" to "success",
+////                        "news" to emptyList<String>(),
+////                        "note" to "No recent news found about \"$topic\"."
+////                    )
+////                }
+////
+////                val formattedNews = relevantNews.take(5).map {
+////                    mapOf(
+////                        "title" to it.title,
+////                        "description" to it.description
+////                    )
+////                }
+////
+////                mapOf(
+////                    "status" to "success",
+////                    "news" to formattedNews
+////                )
+////
+////            } catch (e: Exception) {
+////                mapOf(
+////                    "status" to "error",
+////                    "news" to emptyList<String>(),
+////                    "note" to "Failed to load news."
+////                )
+////            }
+////        }
+//
+//
+//    }
+//
+//}
