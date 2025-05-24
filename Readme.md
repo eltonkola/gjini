@@ -19,12 +19,12 @@ and then run
 ```
 ./gradlew runAdkServer
 ```
-on windows I had to set these values
+on windows, I had to set these values
 ```
 set GOOGLE_GENAI_USE_VERTEXAI=FALSE
 set GOOGLE_API_KEY=XXX
 ```
 
 # Notes
-Unfortunatly image generation and audio generation is not supported yet: https://github.com/google/adk-java/issues/110
+Unfortunately image generation and audio generation is not supported yet: https://github.com/google/adk-java/issues/110
 
