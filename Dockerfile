@@ -20,9 +20,12 @@ COPY src/main/kotlin /app/src/main/kotlin
 
 ENV GOOGLE_GENAI_USE_VERTEXAI="FALSE"
 
-ENTRYPOINT ["java"]
-CMD ["-cp", "/app/app.jar;/app/lib/*", \
-     "com.google.adk.web.AdkWebServer", \
-     "--adk.agents.source-dir=/app/src/main/kotlin", \
-     "--adk.agents.package=com.eltonkola", \
-     "--debug"]
+ENTRYPOINT ["/bin/bash"]
+CMD ["-c", "ls -l /app && java -cp '/app/app.jar:/app/lib/*' com.google.adk.web.AdkWebServer --adk.agents.source-dir=/app/src/main/kotlin --adk.agents.package=com.eltonkola --debug"]
+
+#ENTRYPOINT ["java"]
+#CMD ["-cp", "/app/app.jar:/app/lib/*", \
+#     "com.google.adk.web.AdkWebServer", \
+#     "--adk.agents.source-dir=/app/src/main/kotlin", \
+#     "--adk.agents.package=com.eltonkola", \
+#     "--debug"]
