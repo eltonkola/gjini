@@ -19,10 +19,9 @@ COPY --from=build /build/app-dist/lib /app/lib/
 COPY src/main/kotlin /app/src/main/kotlin
 
 ENV GOOGLE_GENAI_USE_VERTEXAI="FALSE"
-ENV APP_CLASSPATH "/app/app.jar;/app/lib/*"
 
 ENTRYPOINT ["java"]
-CMD ["-cp", "${APP_CLASSPATH}", \
+CMD ["-cp", "/app/app.jar;/app/lib/*", \
      "com.google.adk.web.AdkWebServer", \
      "--adk.agents.source-dir=/app/src/main/kotlin", \
      "--adk.agents.package=com.eltonkola", \
