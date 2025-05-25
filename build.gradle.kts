@@ -1,3 +1,7 @@
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.kotlin
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm") version "2.1.20"
     kotlin("plugin.serialization") version "1.9.21"
@@ -60,7 +64,7 @@ tasks.register<JavaExec>("runAdkServer") {
     args = listOf(
         "--adk.agents.source-dir=src/main/kotlin",
         "--adk.agents.package=com.eltonkola",
-      //  "--adk.agents.class=com.eltonkola.MultiToolAgent",
+        //  "--adk.agents.class=com.eltonkola.MultiToolAgent",
         "--debug"
     )
 
@@ -81,3 +85,107 @@ tasks.register<JavaExec>("runAdkServer") {
 
     dependsOn("build")
 }
+
+
+
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-java-parameters")
+    }
+}
+
+
+
+// --- Distribution Tasks ---
+val distLayoutDirProvider = layout.buildDirectory.dir("app-dist")
+val libDistDirProvider = distLayoutDirProvider.map { it.dir("lib") }
+val appJarName = "app.jar"
+
+// Standard JAR task (thin JAR of your project's code)
+
+tasks.jar {
+    enabled = true
+    archiveBaseName.set(project.name) // Or just 'app' if you prefer app.jar directly from this task
+    manifest {
+        attributes(
+            "Main-Class" to "com.google.adk.web.AdkWebServer",
+            "Class-Path" to sourceSets.main.get().runtimeClasspath.files
+                .filter { it.isFile && it.name.endsWith(".jar") }
+                .joinToString(" ") { file -> "lib/${file.name}" } // Path relative to app.jar
+        )
+    }
+}
+
+
+// Task to copy libraries
+tasks.register<Copy>("copyLibsToDist") {
+    group = "distribution"
+    description = "Copies runtime dependencies to the distribution's lib folder."
+    from(sourceSets.main.get().runtimeClasspath.filter { it.name.endsWith(".jar") })
+    into(libDistDirProvider)
+
+    // Ensure destination directory exists
+    doFirst {
+        libDistDirProvider.get().asFile.mkdirs()
+    }
+    // Force it to run if createCustomDistribution runs, by making it depend on a "prepare" task
+}
+
+// Task to copy the application JAR
+tasks.register<Copy>("copyAppJarToDist") {
+    group = "distribution"
+    description = "Copies the application JAR to the distribution folder."
+    dependsOn(tasks.jar)
+    from(tasks.jar.flatMap { it.archiveFile }) {
+        rename { _ -> appJarName }
+    }
+    into(distLayoutDirProvider)
+
+    // Ensure destination directory exists
+    doFirst {
+        distLayoutDirProvider.get().asFile.mkdirs()
+    }
+}
+
+// Task to clean and prepare the distribution directory
+tasks.register("prepareDistDir") {
+    group = "distribution"
+    doLast { // Use doLast to ensure it runs at execution time
+        val distDirFile = distLayoutDirProvider.get().asFile
+        if (distDirFile.exists()) {
+            project.delete(distDirFile)
+            println("Cleaned distribution directory: ${distDirFile.absolutePath}")
+        }
+        distDirFile.mkdirs()
+        libDistDirProvider.get().asFile.mkdirs() // also make the lib dir
+        println("Prepared distribution directory: ${distDirFile.absolutePath}")
+    }
+}
+
+// Umbrella task to create the full distribution
+tasks.register("createCustomDistribution") {
+    group = "distribution"
+    description = "Creates the application distribution with app JAR and libs."
+
+    // Make copy tasks depend on preparation, and this task depend on copy tasks
+    dependsOn(tasks.named("prepareDistDir"))
+    tasks.named("copyAppJarToDist").get().mustRunAfter(tasks.named("prepareDistDir"))
+    tasks.named("copyLibsToDist").get().mustRunAfter(tasks.named("prepareDistDir"))
+
+    dependsOn(tasks.named("copyAppJarToDist"), tasks.named("copyLibsToDist"))
+
+    doLast {
+        println("Custom distribution successfully created at: ${distLayoutDirProvider.get().asFile.absolutePath}")
+    }
+}
+
+// Make the 'clean' task also clean our custom distribution directory
+tasks.clean {
+    delete(distLayoutDirProvider)
+}
+// --- End of Distribution Tasks ---
+
+// ... (your runAdkServer task and kotlin compiler options) ...
+
