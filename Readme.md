@@ -34,12 +34,9 @@ docker build -t my-adk-server .
 ```
 run it
 ```
-docker run -p 8080:8080 \ # Map ports if your server uses one (e.g., 8080)
--e GOOGLE_API_KEY="your_actual_api_key_here" \
-my-adk-server
+docker run -p 8080:8080 -e GOOGLE_API_KEY="your_actual_api_key_here" my-adk-server
 ```
 
 
 # Notes
 Unfortunately image generation and audio generation is not supported yet: https://github.com/google/adk-java/issues/110
-

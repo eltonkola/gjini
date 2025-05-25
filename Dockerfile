@@ -1,34 +1,25 @@
-FROM ubuntu:latest AS builderstage
+FROM ubuntu:latest AS build
 
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /project
+RUN apt-get update
+RUN apt-get install openjdk-17-jdk -y
 COPY . .
+
+
 RUN ./gradlew createCustomDistribution --no-daemon
 
 
 FROM openjdk:17-jdk-slim
 EXPOSE 8080
 
-WORKDIR /app
+RUN mkdir /app
 
-# Correctly copy artifacts from the 'builderstage'
-COPY --from=builderstage /project/build/app-dist/app.jar /app/app.jar
-COPY --from=builderstage /project/build/app-dist/lib /app/lib/
+COPY --from=build /build/app-dist/app.jar /app/app.jar
+COPY --from=build /build/app-dist/lib /app/lib/
 
-# This still copies from the host machine's context where `docker build` is run
-# This is correct if you want to ship the sources separate from the build stage artifacts.
 COPY src/main/kotlin /app/src/main/kotlin
 
 ENV GOOGLE_GENAI_USE_VERTEXAI="FALSE"
-ENV APP_CLASSPATH "/app/app.jar:/app/lib/*"
-
-# Consider setting user and group for security (optional but good practice)
-# RUN groupadd -r appgroup && useradd -r -g appgroup appuser
-# USER appuser
+ENV APP_CLASSPATH "/app/app.jar;/app/lib/*"
 
 ENTRYPOINT ["java"]
 CMD ["-cp", "${APP_CLASSPATH}", \
